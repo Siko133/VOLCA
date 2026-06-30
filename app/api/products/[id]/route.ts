@@ -1,18 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = params;
+  const { id } = await context.params;
 
+  try {
     const formData = await req.formData();
 
     const name = formData.get("name") as string;
@@ -22,45 +21,42 @@ export async function PUT(
 
     const oldImages = JSON.parse(
       (formData.get("oldImages") as string) || "[]"
-    );
+    ) as string[];
 
     const files = formData.getAll("images") as File[];
 
     const uploadedImages: string[] = [];
 
     for (const file of files) {
-        if (!file || file.size === 0) continue;
+      if (!(file instanceof File) || file.size === 0) continue;
 
-        const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${Date.now()}-${file.name}`;
 
-        const { error } = await supabase.storage
-          .from("products")
-          .upload(
-            fileName,
-            Buffer.from(await file.arrayBuffer()),
-            {
-              contentType: file.type,
-            }
-          );
+      const { error } = await supabase.storage
+        .from("products")
+        .upload(
+          fileName,
+          Buffer.from(await file.arrayBuffer()),
+          {
+            contentType: file.type,
+          }
+        );
 
-        if (error) {
-          return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-          );
-        }
+      if (error) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 500 }
+        );
+      }
 
-        const { data } = supabase.storage
-          .from("products")
-          .getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from("products")
+        .getPublicUrl(fileName);
 
-        uploadedImages.push(data.publicUrl);
+      uploadedImages.push(data.publicUrl);
     }
 
-    const finalImages = [
-      ...oldImages,
-      ...uploadedImages,
-    ];
+    const finalImages = [...oldImages, ...uploadedImages];
 
     const { error } = await supabase
       .from("products")
@@ -80,9 +76,7 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
 
   } catch (err: any) {
     return NextResponse.json(

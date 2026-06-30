@@ -6,7 +6,7 @@ import AddToCart from "./AddToCart";
 
 type Props = {
   product: {
-    id: number;
+    id: string;
     name: string;
     description: string;
     price: number;

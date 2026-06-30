@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/components/context/CartContext";
 
 type Props = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   image: string;
