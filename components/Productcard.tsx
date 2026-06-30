@@ -4,19 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/components/context/CartContext";
 
-type Product = {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-};
-
 export default function ProductCard({
   product,
 }: {
-  product: Product;
+  product: any;
 }) {
+  const images =
+    typeof product.images === "string"
+      ? JSON.parse(product.images)
+      : product.images || [];
+
   const [currentImage, setCurrentImage] = useState(0);
   const [fade, setFade] = useState(false);
 
@@ -27,12 +24,12 @@ export default function ProductCard({
   ) => {
     e.preventDefault();
 
-    if (product.images.length <= 1) return;
+    if (images.length <= 1) return;
 
     setFade(true);
 
     setTimeout(() => {
-      setCurrentImage((prev) => (prev + 1) % product.images.length);
+      setCurrentImage((prev) => (prev + 1) % images.length);
       setFade(false);
     }, 180);
   };
@@ -46,7 +43,7 @@ export default function ProductCard({
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: images[0] || "",
       size: "L",
       quantity: 1,
     });
@@ -56,14 +53,12 @@ export default function ProductCard({
     <Link href={`/product/${product.id}`}>
       <div className="max-w-[240px] mx-auto bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-white transition-all duration-300 hover:shadow-2xl">
 
-        {/* Product Image */}
-
         <div
           onClick={nextImage}
           className="relative cursor-pointer overflow-hidden"
         >
           <img
-            src={product.images[currentImage]}
+            src={images[currentImage] || ""}
             alt={product.name}
             draggable={false}
             className={`w-full h-[260px] object-cover select-none transition-all duration-300 ${
@@ -73,10 +68,10 @@ export default function ProductCard({
             }`}
           />
 
-          {product.images.length > 1 && (
+          {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
 
-              {product.images.map((_, index) => (
+              {images.map((_: any, index: number) => (
                 <div
                   key={index}
                   className={`rounded-full transition-all duration-300 ${
@@ -90,8 +85,6 @@ export default function ProductCard({
             </div>
           )}
         </div>
-
-        {/* Product Info */}
 
         <div className="p-4">
 

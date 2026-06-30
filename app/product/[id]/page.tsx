@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductGallery from "@/components/ProductGallery";
 import ProductInfo from "@/components/ProductInfo";
-import { products } from "@/data/products";
+import { supabase } from "@/lib/supabase";
 
 type Props = {
   params: Promise<{
@@ -16,11 +16,13 @@ export default async function ProductPage({
 }: Props) {
   const { id } = await params;
 
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+  const { data: product, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (!product) {
+  if (error || !product) {
     notFound();
   }
 

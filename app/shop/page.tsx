@@ -1,9 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/Productcard";
-import { products } from "@/data/products";
+import { supabase } from "@/lib/supabase";
 
 export default function ShopPage() {
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function getProducts() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setProducts(data || []);
+    }
+
+    getProducts();
+  }, []);
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />

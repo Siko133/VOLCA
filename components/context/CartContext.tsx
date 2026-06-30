@@ -9,7 +9,7 @@ import {
 } from "react";
 
 export type CartItem = {
-  id: number;
+  id: string;
   name: string;
   price: number;
   image: string;
@@ -20,9 +20,9 @@ export type CartItem = {
 type CartContextType = {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number, size: string) => void;
-  increaseQuantity: (id: number, size: string) => void;
-  decreaseQuantity: (id: number, size: string) => void;
+  removeFromCart: (id: string, size: string) => void;
+  increaseQuantity: (id: string, size: string) => void;
+  decreaseQuantity: (id: string, size: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -39,10 +39,7 @@ export function CartProvider({
 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
-
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
+    if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
   useEffect(() => {
@@ -67,15 +64,13 @@ export function CartProvider({
     });
   };
 
-  const removeFromCart = (id: number, size: string) => {
+  const removeFromCart = (id: string, size: string) => {
     setCart((prev) =>
-      prev.filter(
-        (item) => !(item.id === id && item.size === size)
-      )
+      prev.filter((item) => !(item.id === id && item.size === size))
     );
   };
 
-  const increaseQuantity = (id: number, size: string) => {
+  const increaseQuantity = (id: string, size: string) => {
     setCart((prev) =>
       prev.map((item) =>
         item.id === id && item.size === size
@@ -85,15 +80,12 @@ export function CartProvider({
     );
   };
 
-  const decreaseQuantity = (id: number, size: string) => {
+  const decreaseQuantity = (id: string, size: string) => {
     setCart((prev) =>
       prev
         .map((item) =>
           item.id === id && item.size === size
-            ? {
-                ...item,
-                quantity: item.quantity - 1,
-              }
+            ? { ...item, quantity: item.quantity - 1 }
             : item
         )
         .filter((item) => item.quantity > 0)
@@ -104,10 +96,7 @@ export function CartProvider({
     setCart([]);
   };
 
-  const totalItems = cart.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const totalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -136,9 +125,7 @@ export function useCart() {
   const context = useContext(CartContext);
 
   if (!context) {
-    throw new Error(
-      "useCart must be used inside CartProvider"
-    );
+    throw new Error("useCart must be used inside CartProvider");
   }
 
   return context;
