@@ -8,10 +8,10 @@ const supabase = createClient(
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const formData = await req.formData();
 
@@ -29,32 +29,32 @@ export async function PUT(
     const uploadedImages: string[] = [];
 
     for (const file of files) {
-      if (!file || file.size === 0) continue;
+        if (!file || file.size === 0) continue;
 
-      const fileName = `${Date.now()}-${file.name}`;
+        const fileName = `${Date.now()}-${file.name}`;
 
-      const { error } = await supabase.storage
-        .from("products")
-        .upload(
-          fileName,
-          Buffer.from(await file.arrayBuffer()),
-          {
-            contentType: file.type,
-          }
-        );
+        const { error } = await supabase.storage
+          .from("products")
+          .upload(
+            fileName,
+            Buffer.from(await file.arrayBuffer()),
+            {
+              contentType: file.type,
+            }
+          );
 
-      if (error) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 500 }
-        );
-      }
+        if (error) {
+          return NextResponse.json(
+            { error: error.message },
+            { status: 500 }
+          );
+        }
 
-      const { data } = supabase.storage
-        .from("products")
-        .getPublicUrl(fileName);
+        const { data } = supabase.storage
+          .from("products")
+          .getPublicUrl(fileName);
 
-      uploadedImages.push(data.publicUrl);
+        uploadedImages.push(data.publicUrl);
     }
 
     const finalImages = [
