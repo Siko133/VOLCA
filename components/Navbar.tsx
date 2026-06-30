@@ -2,41 +2,76 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-xl border-b border-zinc-800">
+    <header className="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+      <div className="max-w-7xl mx-auto h-20 px-5 md:px-10 flex items-center justify-between">
 
-      <div className="max-w-7xl mx-auto px-10 h-24 flex items-center justify-between">
+        {/* Logo */}
 
         <Link
           href="/"
-          className="text-4xl font-black tracking-[10px]"
+          className="text-3xl md:text-5xl font-black tracking-[8px] md:tracking-[10px] hover:opacity-80 transition"
         >
           VOLCA
         </Link>
 
-        <div className="hidden md:flex gap-10 text-sm uppercase tracking-widest">
+        {/* Desktop Menu */}
 
-          <Link href="/">Home</Link>
+        <nav className="hidden md:flex items-center gap-12">
+          <Link
+            href="/"
+            className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
+          >
+            Home
+          </Link>
 
-          <Link href="/shop">Shop</Link>
+          <Link
+            href="/shop"
+            className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
+          >
+            Shop
+          </Link>
 
-          <Link href="#">Collections</Link>
+          <Link
+            href="#"
+            className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
+          >
+            Collections
+          </Link>
 
-          <Link href="#">About</Link>
+          <Link
+            href="#"
+            className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
+          >
+            About
+          </Link>
 
-          <Link href="#">Contact</Link>
+          <Link
+            href="#"
+            className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
+          >
+            Contact
+          </Link>
+        </nav>
 
-        </div>
+        {/* Right Icons */}
 
-        <div className="flex gap-6 text-2xl">
+        <div className="flex items-center gap-5 text-2xl">
 
-          <button>🔍</button>
+          <button className="hover:scale-110 transition">
+            🔍
+          </button>
 
-          <button>🛒</button>
+          <button className="relative hover:scale-110 transition">
+            🛒
+
+            <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white text-black text-[11px] font-bold flex items-center justify-center">
+              0
+            </span>
+          </button>
 
         </div>
 
       </div>
-
-    </nav>
+    </header>
   );
 }
