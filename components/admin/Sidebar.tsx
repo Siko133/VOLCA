@@ -1,14 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Dispatch, SetStateAction } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import {
   LayoutDashboard,
   ShoppingBag,
   Package,
   Settings,
   LogOut,
+  X,
 } from "lucide-react";
+
+type SidebarProps = {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
 
 const links = [
   {
@@ -33,61 +41,111 @@ const links = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  open,
+  setOpen,
+}: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/login");
+    router.refresh();
+    setOpen(false);
+  }
 
   return (
-    <aside className="w-72 h-screen bg-zinc-950 border-r border-zinc-800 flex flex-col">
+    <>
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+        />
+      )}
 
-      <div className="p-8 border-b border-zinc-800">
+      <aside
+        className={`
+fixed md:static
+top-0 left-0
+z-50
+h-screen
+w-72
+bg-zinc-950
+border-r border-zinc-800
+flex flex-col
+transition-transform duration-300
 
-        <h1 className="text-3xl font-black text-white">
-          VOLCA
-        </h1>
+${open ? "translate-x-0" : "-translate-x-full"}
 
-        <p className="text-zinc-500 mt-2">
-          Admin Panel
-        </p>
+md:translate-x-0
+`}
+      >
+        <div className="flex items-center justify-between p-8 border-b border-zinc-800">
 
-      </div>
+          <div>
+            <h1 className="text-3xl font-black text-white">
+              VOLCA
+            </h1>
 
-      <nav className="flex-1 p-5 space-y-2">
+            <p className="text-zinc-500 mt-2">
+              Admin Panel
+            </p>
+          </div>
 
-        {links.map((link) => {
-          const Icon = link.icon;
+          <button
+            onClick={() => setOpen(false)}
+            className="md:hidden text-white"
+          >
+            <X />
+          </button>
 
-          const active = pathname.startsWith(link.href);
+        </div>
 
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`flex items-center gap-4 px-5 py-4 rounded-xl transition
-              ${
-                active
-                  ? "bg-white text-black"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-              }`}
-            >
-              <Icon size={22} />
-              {link.name}
-            </Link>
-          );
-        })}
+        <nav className="flex-1 p-5 space-y-2">
 
-      </nav>
+          {links.map((link) => {
+            const Icon = link.icon;
 
-      <div className="p-5 border-t border-zinc-800">
+            const active =
+              pathname.startsWith(link.href);
 
-        <button
-          className="w-full flex items-center gap-4 px-5 py-4 rounded-xl text-red-400 hover:bg-red-500 hover:text-white transition"
-        >
-          <LogOut size={22} />
-          Logout
-        </button>
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-4 px-5 py-4 rounded-xl transition
 
-      </div>
+${
+  active
+    ? "bg-white text-black"
+    : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+}
+`}
+              >
+                <Icon size={22} />
+                {link.name}
+              </Link>
+            );
+          })}
 
-    </aside>
+        </nav>
+
+        <div className="p-5 border-t border-zinc-800">
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-xl text-red-400 hover:bg-red-600 hover:text-white transition"
+          >
+            <LogOut size={22} />
+            Logout
+          </button>
+
+        </div>
+
+      </aside>
+    </>
   );
 }

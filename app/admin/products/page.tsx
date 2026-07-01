@@ -57,25 +57,32 @@ export default function ProductsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white p-8">
+    <main className="min-h-screen bg-black text-white p-5 md:p-8">
 
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-8">
 
         <div>
-          <h1 className="text-4xl font-bold">
+          <h1 className="text-3xl md:text-4xl font-black">
             Products
           </h1>
 
-          <p className="text-zinc-400">
+          <p className="text-zinc-400 mt-1">
             {products.length} Products
           </p>
         </div>
 
         <Link
           href="/admin/products/new"
-          className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-zinc-200 transition"
+          className="flex items-center justify-center gap-3 h-12 md:h-14 px-8 rounded-2xl bg-white text-black font-bold text-sm md:text-base hover:bg-zinc-200 active:scale-95 transition"
         >
-          + Add Product
+          <span className="text-2xl leading-none">
+            +
+          </span>
+
+          <span>
+            Add Product
+          </span>
+
         </Link>
 
       </div>

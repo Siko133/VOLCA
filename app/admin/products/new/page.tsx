@@ -10,10 +10,28 @@ export default function NewProductPage() {
   const [price, setPrice] = useState("");
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState<FileList | null>(null);
+
+  const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleImages(files: FileList | null) {
+    if (!files) return;
+
+    setImages((prev) => [
+      ...prev,
+      ...Array.from(files),
+    ]);
+  }
+
+  function removeImage(index: number) {
+    setImages((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
+  }
+
+  async function handleSubmit(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
 
     setLoading(true);
@@ -23,18 +41,22 @@ export default function NewProductPage() {
     formData.append("name", name);
     formData.append("price", price);
     formData.append("color", color);
-    formData.append("description", description);
+    formData.append(
+      "description",
+      description
+    );
 
-    if (images) {
-      Array.from(images).forEach((file) => {
-        formData.append("images", file);
-      });
-    }
-
-    const res = await fetch("/api/products", {
-      method: "POST",
-      body: formData,
+    images.forEach((file) => {
+      formData.append("images", file);
     });
+
+    const res = await fetch(
+      "/api/products",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     const data = await res.json();
 
@@ -49,59 +71,117 @@ export default function NewProductPage() {
 
     router.push("/admin/products");
   }
-
   return (
-    <main className="min-h-screen bg-black text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">
-        Add Product
-      </h1>
+    <main className="min-h-screen bg-black text-white p-5 md:p-8">
 
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-xl space-y-5"
-      >
-        <input
-          className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800"
-          placeholder="Product Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+      <div className="max-w-3xl mx-auto">
 
-        <input
-          type="number"
-          className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800"
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
+        <h1 className="text-3xl md:text-4xl font-black mb-8">
+          Add Product
+        </h1>
 
-        <input
-          className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800"
-          placeholder="Color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        />
-
-        <textarea
-          className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 h-40"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <input
-          type="file"
-          multiple
-          onChange={(e) => setImages(e.target.files)}
-        />
-
-        <button
-          disabled={loading}
-          className="bg-white text-black px-8 py-4 rounded-xl font-bold"
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
         >
-          {loading ? "Saving..." : "Save Product"}
-        </button>
-      </form>
+
+          <input
+            className="w-full h-14 px-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-white"
+            placeholder="Product Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
+            type="number"
+            className="w-full h-14 px-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-white"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+
+          <input
+            className="w-full h-14 px-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-white"
+            placeholder="Color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
+
+          <textarea
+            className="w-full h-40 p-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none resize-none focus:border-white"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          {images.length > 0 && (
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+              {images.map((file, index) => (
+
+                <div
+                  key={index}
+                  className="relative rounded-2xl overflow-hidden border border-zinc-800"
+                >
+
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt=""
+                    className="w-full aspect-square object-cover"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 w-9 h-9 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold"
+                  >
+                    ✕
+                  </button>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
+
+          <label className="w-full h-16 rounded-2xl bg-white text-black flex items-center justify-center gap-3 font-bold cursor-pointer hover:bg-zinc-200 transition">
+
+            <span className="text-2xl">
+              +
+            </span>
+
+            <span>
+              Add Photos
+            </span>
+
+            <input
+              hidden
+              multiple
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                handleImages(e.target.files)
+              }
+            />
+
+          </label>
+
+          <button
+            disabled={loading}
+            className="w-full h-14 rounded-2xl bg-white text-black font-bold hover:bg-zinc-200 transition disabled:opacity-50"
+          >
+            {loading
+              ? "Saving..."
+              : "Save Product"}
+          </button>
+
+        </form>
+
+      </div>
+
     </main>
   );
 }

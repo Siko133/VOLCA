@@ -6,49 +6,84 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function DELETE(
+export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
 
-    // نجيب بيانات المنتج
-    const { data: product, error: findError } = await supabase
-      .from("products")
-      .select("images")
-      .eq("id", id)
-      .single();
+    const formData = await req.formData();
 
-    if (findError) {
-      return NextResponse.json(
-        { error: findError.message },
-        { status: 404 }
-      );
-    }
+    const name = formData.get("name") as string;
+    const price = Number(formData.get("price"));
+    const color = formData.get("color") as string;
+    const description = formData.get("description") as string;
 
-    // حذف الصور من Storage
-    if (product.images?.length) {
-      const files = product.images.map((url: string) => {
-        const fileName = url.split("/products/")[1];
-        return fileName;
-      });
+    const oldImages = JSON.parse(
+      (formData.get("images") as string) || "[]"
+    ) as string[];
 
-      await supabase.storage
+    const newFiles = formData.getAll("newImages") as File[];
+
+    const uploadedImages: string[] = [];
+
+    for (const file of newFiles) {
+      if (file.size === 0) continue;
+
+      const fileName = `${Date.now()}-${file.name}`;
+
+      const { error } = await supabase.storage
         .from("products")
-        .remove(files);
+        .upload(
+          fileName,
+          Buffer.from(await file.arrayBuffer()),
+          {
+            contentType: file.type,
+          }
+        );
+
+      if (error) {
+        return NextResponse.json(
+          {
+            error: error.message,
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      const { data } = supabase.storage
+        .from("products")
+        .getPublicUrl(fileName);
+
+      uploadedImages.push(data.publicUrl);
     }
 
-    // حذف المنتج من الجدول
+    const images = [
+      ...oldImages,
+      ...uploadedImages,
+    ];
     const { error } = await supabase
       .from("products")
-      .delete()
+      .update({
+        name,
+        price,
+        color,
+        description,
+        images,
+      })
       .eq("id", id);
 
     if (error) {
       return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
+        {
+          error: error.message,
+        },
+        {
+          status: 500,
+        }
       );
     }
 
@@ -58,8 +93,51 @@ export async function DELETE(
 
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
+      {
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+    });
+
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

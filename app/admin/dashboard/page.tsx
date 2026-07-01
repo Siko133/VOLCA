@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     async function checkUser() {
@@ -19,11 +21,12 @@ export default function DashboardPage() {
     }
 
     checkUser();
-  }, [router]);
+  }, [router, supabase]);
 
   async function logout() {
     await supabase.auth.signOut();
     router.replace("/login");
+    router.refresh();
   }
 
   return (
@@ -37,7 +40,7 @@ export default function DashboardPage() {
 
         <button
           onClick={logout}
-          className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-xl font-bold"
+          className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-xl font-bold transition"
         >
           Logout
         </button>
@@ -48,26 +51,35 @@ export default function DashboardPage() {
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <Link
+            href="/admin/products"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-white hover:scale-[1.02] transition cursor-pointer"
+          >
             <h2 className="text-xl font-bold">Products</h2>
             <p className="text-zinc-400 mt-2">
               Manage all products.
             </p>
-          </div>
+          </Link>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <Link
+            href="/admin/orders"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-white hover:scale-[1.02] transition cursor-pointer"
+          >
             <h2 className="text-xl font-bold">Orders</h2>
             <p className="text-zinc-400 mt-2">
               Coming Soon
             </p>
-          </div>
+          </Link>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <Link
+            href="/admin/analytics"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-white hover:scale-[1.02] transition cursor-pointer"
+          >
             <h2 className="text-xl font-bold">Analytics</h2>
             <p className="text-zinc-400 mt-2">
               Coming Soon
             </p>
-          </div>
+          </Link>
 
         </div>
 
