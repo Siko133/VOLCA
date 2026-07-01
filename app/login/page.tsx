@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,13 +29,13 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/admin/dashboard");
+    router.replace("/admin/dashboard");
+    router.refresh();
   }
 
   return (
     <main className="min-h-screen bg-black flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-
         <h1 className="text-4xl font-black text-white text-center">
           VOLCA
         </h1>
@@ -47,7 +48,6 @@ export default function LoginPage() {
           onSubmit={handleLogin}
           className="mt-8 space-y-5"
         >
-
           <input
             type="email"
             placeholder="Email"
@@ -71,7 +71,6 @@ export default function LoginPage() {
           >
             {loading ? "Signing In..." : "Sign In"}
           </button>
-
         </form>
       </div>
     </main>
