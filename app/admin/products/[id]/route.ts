@@ -13,7 +13,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // نجيب بيانات المنتج
+    // جلب صور المنتج
     const { data: product, error: findError } = await supabase
       .from("products")
       .select("images")
@@ -28,18 +28,31 @@ export async function DELETE(
     }
 
     // حذف الصور من Storage
-    if (product.images?.length) {
-      const files = product.images.map((url: string) => {
-        const fileName = url.split("/products/")[1];
-        return fileName;
-      });
+    if (product?.images?.length) {
+      const files = product.images
+        .map((url: string) => {
+          try {
+            return decodeURIComponent(
+              url.split("/storage/v1/object/public/products/")[1]
+            );
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
 
-      await supabase.storage
-        .from("products")
-        .remove(files);
+      if (files.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from("products")
+          .remove(files as string[]);
+
+        if (storageError) {
+          console.error("Storage Error:", storageError.message);
+        }
+      }
     }
 
-    // حذف المنتج من الجدول
+    // حذف المنتج من قاعدة البيانات
     const { error } = await supabase
       .from("products")
       .delete()
@@ -55,11 +68,16 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
     });
-
   } catch (error: any) {
+    console.error(error);
+
     return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
+      {
+        error: error.message ?? "Unknown Error",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
