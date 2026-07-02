@@ -6,55 +6,87 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest) {
   try {
-    const { id } = await params;
+    const formData = await req.formData();
 
-    console.log("Deleting Product:", id);
+    const name = formData.get("name")?.toString() || "";
+    const price = Number(formData.get("price") || 0);
+    const color = formData.get("color")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
 
-    const { data: product, error: findError } = await supabase
-      .from("products")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const files = formData.getAll("images") as File[];
 
-    console.log("PRODUCT =", product);
-    console.log("FIND ERROR =", findError);
+    const imageUrls: string[] = [];
 
-    if (findError) {
-      return NextResponse.json(
-        { error: findError.message },
-        { status: 500 }
-      );
+    for (const file of files) {
+      if (!file || file.size === 0) continue;
+
+      const fileName = `${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("products")
+        .upload(fileName, Buffer.from(await file.arrayBuffer()), {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error(uploadError);
+
+        return NextResponse.json(
+          {
+            error: uploadError.message,
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      const { data } = supabase.storage
+        .from("products")
+        .getPublicUrl(fileName);
+
+      imageUrls.push(data.publicUrl);
     }
 
-    const { error: deleteError } = await supabase
+    const { data, error } = await supabase
       .from("products")
-      .delete()
-      .eq("id", id);
+      .insert({
+        name,
+        price,
+        color,
+        description,
+        images: imageUrls,
+      })
+      .select()
+      .single();
 
-    console.log("DELETE ERROR =", deleteError);
+    if (error) {
+      console.error(error);
 
-    if (deleteError) {
       return NextResponse.json(
-        { error: deleteError.message },
-        { status: 500 }
+        {
+          error: error.message,
+        },
+        {
+          status: 500,
+        }
       );
     }
 
     return NextResponse.json({
       success: true,
+      product: data,
     });
 
-  } catch (err: any) {
-    console.error(err);
+  } catch (error: any) {
+    console.error(error);
 
     return NextResponse.json(
       {
-        error: err.message,
+        error: error.message,
       },
       {
         status: 500,

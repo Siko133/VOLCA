@@ -6,22 +6,28 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+type Context = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: Context
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
 
     const formData = await req.formData();
 
-    const name = formData.get("name") as string;
-    const price = Number(formData.get("price"));
-    const color = formData.get("color") as string;
-    const description = formData.get("description") as string;
+    const name = formData.get("name")?.toString() || "";
+    const price = Number(formData.get("price") || 0);
+    const color = formData.get("color")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
 
     const oldImages = JSON.parse(
-      (formData.get("images") as string) || "[]"
+      formData.get("images")?.toString() || "[]"
     ) as string[];
 
     const newFiles = formData.getAll("newImages") as File[];
@@ -29,28 +35,20 @@ export async function PUT(
     const uploadedImages: string[] = [];
 
     for (const file of newFiles) {
-      if (file.size === 0) continue;
+      if (!file || file.size === 0) continue;
 
       const fileName = `${Date.now()}-${file.name}`;
 
       const { error } = await supabase.storage
         .from("products")
-        .upload(
-          fileName,
-          Buffer.from(await file.arrayBuffer()),
-          {
-            contentType: file.type,
-          }
-        );
+        .upload(fileName, Buffer.from(await file.arrayBuffer()), {
+          contentType: file.type,
+        });
 
       if (error) {
         return NextResponse.json(
-          {
-            error: error.message,
-          },
-          {
-            status: 500,
-          }
+          { error: error.message },
+          { status: 500 }
         );
       }
 
@@ -61,10 +59,6 @@ export async function PUT(
       uploadedImages.push(data.publicUrl);
     }
 
-    const images = [
-      ...oldImages,
-      ...uploadedImages,
-    ];
     const { error } = await supabase
       .from("products")
       .update({
@@ -72,18 +66,14 @@ export async function PUT(
         price,
         color,
         description,
-        images,
+        images: [...oldImages, ...uploadedImages],
       })
       .eq("id", id);
 
     if (error) {
       return NextResponse.json(
-        {
-          error: error.message,
-        },
-        {
-          status: 500,
-        }
+        { error: error.message },
+        { status: 500 }
       );
     }
 
@@ -92,6 +82,8 @@ export async function PUT(
     });
 
   } catch (error: any) {
+    console.error(error);
+
     return NextResponse.json(
       {
         error: error.message,
@@ -105,10 +97,10 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: Context
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
 
     const { error } = await supabase
       .from("products")
@@ -131,6 +123,8 @@ export async function DELETE(
     });
 
   } catch (error: any) {
+    console.error(error);
+
     return NextResponse.json(
       {
         error: error.message,
