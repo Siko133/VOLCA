@@ -13,8 +13,6 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    console.log("Deleting product:", id);
-
     // جلب صور المنتج
     const { data: product, error: findError } = await supabase
       .from("products")
@@ -23,77 +21,59 @@ export async function DELETE(
       .single();
 
     if (findError) {
-      console.error("Find Error:", findError);
-
       return NextResponse.json(
         { error: findError.message },
         { status: 404 }
       );
     }
 
-    console.log("Product:", product);
-
-    // حذف الصور من Storage
+    // حذف الصور من Supabase Storage فقط
     if (product?.images?.length) {
-      const files = product.images
-        .map((url: string) => {
-          const index = url.indexOf("/storage/v1/object/public/products/");
+      const storageFiles = product.images
+        .filter(
+          (url: string) =>
+            url &&
+            url.includes("/storage/v1/object/public/products/")
+        )
+        .map((url: string) =>
+          decodeURIComponent(
+            url.split("/storage/v1/object/public/products/")[1]
+          )
+        );
 
-          if (index === -1) return null;
-
-          return decodeURIComponent(
-            url.substring(
-              index + "/storage/v1/object/public/products/".length
-            )
-          );
-        })
-        .filter(Boolean);
-
-      console.log("Files To Delete:", files);
-
-      if (files.length > 0) {
-        const { data, error: storageError } =
-          await supabase.storage
-            .from("products")
-            .remove(files as string[]);
-
-        console.log("Storage Response:", data);
+      if (storageFiles.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from("products")
+          .remove(storageFiles);
 
         if (storageError) {
-          console.error("Storage Error:", storageError);
+          console.error(storageError);
         }
       }
     }
 
-    // حذف المنتج
+    // حذف المنتج من قاعدة البيانات
     const { error: deleteError } = await supabase
       .from("products")
       .delete()
       .eq("id", id);
 
     if (deleteError) {
-      console.error("Database Delete Error:", deleteError);
-
       return NextResponse.json(
         { error: deleteError.message },
         { status: 500 }
       );
     }
 
-    console.log("Product Deleted Successfully");
-
     return NextResponse.json({
       success: true,
     });
-
-  } catch (err: any) {
-    console.error("SERVER ERROR:", err);
+  } catch (error: any) {
+    console.error(error);
 
     return NextResponse.json(
       {
-        error: String(err),
-        message: err?.message,
-        stack: err?.stack,
+        error: error.message ?? "Unknown Error",
       },
       {
         status: 500,
