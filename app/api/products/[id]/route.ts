@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseServer } from "@/lib/supabase-server";
 
 type Context = {
   params: Promise<{
@@ -18,7 +13,7 @@ export async function GET(
 ) {
   const { id } = await context.params;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from("products")
     .select("*")
     .eq("id", id)
@@ -40,7 +35,7 @@ export async function DELETE(
 ) {
   const { id } = await context.params;
 
-  const { error } = await supabase
+  const { error } = await supabaseServer
     .from("products")
     .delete()
     .eq("id", id);
@@ -84,10 +79,10 @@ export async function PUT(
       if (!file || file.size === 0) continue;
 
       const fileName =
-        `${Date.now()}-${Math.random()}-${file.name}`;
+        `${Date.now()}-${crypto.randomUUID()}-${file.name}`;
 
-      const { error } =
-        await supabase.storage
+      const { error: uploadError } =
+        await supabaseServer.storage
           .from("products")
           .upload(
             fileName,
@@ -97,21 +92,21 @@ export async function PUT(
             }
           );
 
-      if (error) {
+      if (uploadError) {
         return NextResponse.json(
-          { error: error.message },
+          { error: uploadError.message },
           { status: 500 }
         );
       }
 
-      const { data } = supabase.storage
+      const { data } = supabaseServer.storage
         .from("products")
         .getPublicUrl(fileName);
 
       uploaded.push(data.publicUrl);
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseServer
       .from("products")
       .update({
         name,
@@ -135,12 +130,8 @@ export async function PUT(
 
   } catch (err: any) {
     return NextResponse.json(
-      {
-        error: err.message,
-      },
-      {
-        status: 500,
-      }
+      { error: err.message },
+      { status: 500 }
     );
   }
 }

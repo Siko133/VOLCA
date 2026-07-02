@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseServer } from "@/lib/supabase-server";
 
 export async function GET() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from("products")
     .select("*")
-    .order("id", { ascending: true });
+    .order("id");
 
   if (error) {
     return NextResponse.json(
@@ -40,10 +35,10 @@ export async function POST(req: NextRequest) {
       if (!file || file.size === 0) continue;
 
       const fileName =
-        `${Date.now()}-${Math.random()}-${file.name}`;
+        `${Date.now()}-${crypto.randomUUID()}-${file.name}`;
 
       const { error: uploadError } =
-        await supabase.storage
+        await supabaseServer.storage
           .from("products")
           .upload(
             fileName,
@@ -60,14 +55,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const { data } = supabase.storage
+      const { data } = supabaseServer.storage
         .from("products")
         .getPublicUrl(fileName);
 
       imageUrls.push(data.publicUrl);
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from("products")
       .insert({
         name,
