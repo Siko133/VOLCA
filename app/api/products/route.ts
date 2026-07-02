@@ -6,65 +6,59 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST(req: NextRequest) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const formData = await req.formData();
+    const { id } = await params;
 
-    const name = formData.get("name") as string;
-    const price = Number(formData.get("price"));
-    const color = formData.get("color") as string;
-    const description = formData.get("description") as string;
+    console.log("Deleting Product:", id);
 
-    const files = formData.getAll("images") as File[];
+    const { data: product, error: findError } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-    const imageUrls: string[] = [];
+    console.log("PRODUCT =", product);
+    console.log("FIND ERROR =", findError);
 
-    for (const file of files) {
-      if (file.size === 0) continue;
-
-      const fileName = `${Date.now()}-${file.name}`;
-
-      const { error } = await supabase.storage
-        .from("products")
-        .upload(fileName, Buffer.from(await file.arrayBuffer()), {
-          contentType: file.type,
-        });
-
-      if (error) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 500 }
-        );
-      }
-
-      const { data } = supabase.storage
-        .from("products")
-        .getPublicUrl(fileName);
-
-      imageUrls.push(data.publicUrl);
-    }
-
-    const { error } = await supabase.from("products").insert({
-      name,
-      price,
-      color,
-      description,
-      images: imageUrls,
-    });
-
-    if (error) {
+    if (findError) {
       return NextResponse.json(
-        { error: error.message },
+        { error: findError.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    const { error: deleteError } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", id);
 
-  } catch (error: any) {
+    console.log("DELETE ERROR =", deleteError);
+
+    if (deleteError) {
+      return NextResponse.json(
+        { error: deleteError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+    });
+
+  } catch (err: any) {
+    console.error(err);
+
     return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
+      {
+        error: err.message,
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
