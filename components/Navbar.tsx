@@ -28,18 +28,62 @@ export default function Navbar() {
             </button>
 
             {menuOpen && (
-              <div className="absolute top-14 left-0 w-56 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden shadow-2xl">
+  <div className="absolute top-14 left-0 w-64 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden shadow-2xl">
 
-                <Link
-                  href="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-5 py-4 hover:bg-zinc-800 transition"
-                >
-                  👤 Admin Login
-                </Link>
+    <Link
+      href="/"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      Home
+    </Link>
 
-              </div>
-            )}
+    <Link
+      href="/shop"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      Shop
+    </Link>
+
+    <Link
+      href="/collections"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      Collections
+    </Link>
+
+    <Link
+      href="/about"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      About
+    </Link>
+
+    <a
+      href="https://wa.me/201017516709"
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      Contact
+    </a>
+
+    <div className="border-t border-zinc-800" />
+
+    <Link
+      href="/login"
+      onClick={() => setMenuOpen(false)}
+      className="block px-5 py-4 hover:bg-zinc-800 transition"
+    >
+      👤 Admin Login
+    </Link>
+
+  </div>
+)}
 
             <Link
               href="/"
@@ -69,7 +113,7 @@ export default function Navbar() {
             </Link>
 
             <Link
-              href="#"
+              href="/collections"  
               className="text-sm font-semibold uppercase tracking-[3px] hover:text-zinc-300 transition"
             >
               Collections

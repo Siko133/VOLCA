@@ -18,6 +18,9 @@ export default function EditProductPage() {
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
 
+  const [collections, setCollections] = useState<any[]>([]);
+  const [collectionId, setCollectionId] = useState("");
+
   const [images, setImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
 
@@ -42,11 +45,22 @@ export default function EditProductPage() {
     setPrice(String(data.price));
     setColor(data.color);
     setDescription(data.description);
+
+    setCollectionId(
+      data.collection_id
+        ? String(data.collection_id)
+        : ""
+    );
+
     setImages(data.images || []);
+
+    const res = await fetch("/api/collections");
+    const collections = await res.json();
+
+    setCollections(collections);
 
     setLoading(false);
   }
-
   function handleSelectImages(files: FileList | null) {
     if (!files) return;
 
@@ -77,6 +91,7 @@ export default function EditProductPage() {
     formData.append("price", price);
     formData.append("color", color);
     formData.append("description", description);
+    formData.append("collection_id", collectionId);
 
     formData.append(
       "images",
@@ -114,6 +129,7 @@ export default function EditProductPage() {
       </main>
     );
   }
+
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-8">
 
@@ -164,6 +180,25 @@ export default function EditProductPage() {
               placeholder="Color"
               className="w-full h-14 px-5 rounded-xl bg-zinc-950 border border-zinc-700 outline-none"
             />
+
+            <select
+              value={collectionId}
+              onChange={(e) => setCollectionId(e.target.value)}
+              className="w-full h-14 px-5 rounded-xl bg-zinc-950 border border-zinc-700 outline-none"
+            >
+              <option value="">
+                No Collection
+              </option>
+
+              {collections.map((collection) => (
+                <option
+                  key={collection.id}
+                  value={collection.id}
+                >
+                  {collection.name}
+                </option>
+              ))}
+            </select>
 
             <textarea
               value={description}

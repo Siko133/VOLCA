@@ -67,6 +67,11 @@ export async function PUT(
     const description =
       formData.get("description")?.toString() || "";
 
+    const collection_id =
+      formData.get("collection_id")?.toString() === ""
+        ? null
+        : Number(formData.get("collection_id"));
+
     const oldImages = JSON.parse(
       formData.get("images")?.toString() || "[]"
     ) as string[];
@@ -113,6 +118,7 @@ export async function PUT(
         price,
         color,
         description,
+        collection_id,
         images: [...oldImages, ...uploaded],
       })
       .eq("id", id);

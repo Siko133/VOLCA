@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
     const description =
       formData.get("description")?.toString() || "";
 
+    const collection_id =
+      Number(formData.get("collection_id")) || null;
+
     const files = formData.getAll("images") as File[];
 
     const imageUrls: string[] = [];
@@ -69,6 +72,7 @@ export async function POST(req: NextRequest) {
         price,
         color,
         description,
+        collection_id,
         images: imageUrls,
       })
       .select()
@@ -85,8 +89,12 @@ export async function POST(req: NextRequest) {
 
   } catch (err: any) {
     return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
+      {
+        error: err.message,
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

@@ -28,7 +28,7 @@ export default function Hero() {
             </button>
           </Link>
 
-          <Link href="/shop">
+          <Link href="/collections">
             <button className="w-60 h-14 rounded-full border border-white font-bold text-sm tracking-[2px] hover:bg-white hover:text-black transition duration-300">
               VIEW COLLECTION
             </button>

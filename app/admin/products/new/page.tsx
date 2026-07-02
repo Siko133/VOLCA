@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function NewProductPage() {
@@ -11,8 +11,22 @@ export default function NewProductPage() {
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
 
+  const [collections, setCollections] = useState<any[]>([]);
+  const [collectionId, setCollectionId] = useState("");
+
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadCollections() {
+      const res = await fetch("/api/collections");
+      const data = await res.json();
+
+      setCollections(data);
+    }
+
+    loadCollections();
+  }, []);
 
   function handleImages(files: FileList | null) {
     if (!files) return;
@@ -41,22 +55,16 @@ export default function NewProductPage() {
     formData.append("name", name);
     formData.append("price", price);
     formData.append("color", color);
-    formData.append(
-      "description",
-      description
-    );
-
+    formData.append("description", description);
+    formData.append("collection_id", collectionId);
     images.forEach((file) => {
       formData.append("images", file);
     });
 
-    const res = await fetch(
-      "/api/products",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch("/api/products", {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await res.json();
 
@@ -71,6 +79,7 @@ export default function NewProductPage() {
 
     router.push("/admin/products");
   }
+
   return (
     <main className="min-h-screen bg-black text-white p-5 md:p-8">
 
@@ -107,6 +116,25 @@ export default function NewProductPage() {
             onChange={(e) => setColor(e.target.value)}
           />
 
+          <select
+            value={collectionId}
+            onChange={(e) => setCollectionId(e.target.value)}
+            className="w-full h-14 px-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none focus:border-white"
+          >
+            <option value="">
+              Select Collection
+            </option>
+
+            {collections.map((collection) => (
+              <option
+                key={collection.id}
+                value={collection.id}
+              >
+                {collection.name}
+              </option>
+            ))}
+          </select>
+
           <textarea
             className="w-full h-40 p-5 rounded-2xl bg-zinc-900 border border-zinc-800 outline-none resize-none focus:border-white"
             placeholder="Description"
@@ -115,7 +143,6 @@ export default function NewProductPage() {
           />
 
           {images.length > 0 && (
-
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
               {images.map((file, index) => (
@@ -144,18 +171,13 @@ export default function NewProductPage() {
               ))}
 
             </div>
-
           )}
 
           <label className="w-full h-16 rounded-2xl bg-white text-black flex items-center justify-center gap-3 font-bold cursor-pointer hover:bg-zinc-200 transition">
 
-            <span className="text-2xl">
-              +
-            </span>
+            <span className="text-2xl">+</span>
 
-            <span>
-              Add Photos
-            </span>
+            <span>Add Photos</span>
 
             <input
               hidden

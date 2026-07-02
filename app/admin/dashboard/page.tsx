@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
       <section className="max-w-7xl mx-auto p-8">
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-4 gap-6">
 
           <Link
             href="/admin/products"
@@ -58,6 +58,16 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold">Products</h2>
             <p className="text-zinc-400 mt-2">
               Manage all products.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/collections"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-white hover:scale-[1.02] transition cursor-pointer"
+          >
+            <h2 className="text-xl font-bold">Collections</h2>
+            <p className="text-zinc-400 mt-2">
+              Manage all collections.
             </p>
           </Link>
 
