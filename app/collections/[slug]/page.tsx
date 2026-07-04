@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
+import CollectionSlider from "@/components/CollectionSlider";
 
 type Props = {
   params: Promise<{
@@ -48,31 +49,33 @@ export default async function CollectionPage({
 
             {products.map((product) => (
 
-              <Link
+              <div
                 key={product.id}
-                href={`/product/${product.id}`}
                 className="group bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden hover:border-white transition"
               >
 
-                <img
-                  src={product.images?.[0]}
+                <CollectionSlider
+                  images={product.images || []}
                   alt={product.name}
-                  className="w-full h-80 object-cover group-hover:scale-105 transition duration-300"
                 />
 
-                <div className="p-6">
+                <Link
+                  href={`/product/${product.id}`}
+                >
+                  <div className="p-6">
 
-                  <h2 className="text-xl font-bold">
-                    {product.name}
-                  </h2>
+                    <h2 className="text-xl font-bold">
+                      {product.name}
+                    </h2>
 
-                  <p className="text-zinc-400 mt-2">
-                    {product.price} EGP
-                  </p>
+                    <p className="text-zinc-400 mt-2">
+                      {product.price} EGP
+                    </p>
 
-                </div>
+                  </div>
+                </Link>
 
-              </Link>
+              </div>
 
             ))}
 
